@@ -41,7 +41,8 @@ export default {
         userId,
         flowVersions: {
           'dev-example-flow': 2,
-        }
+        },
+        logLevel: 'trace'
       });
 
       await this.dopt.flow('dev-example-flow').initialized();

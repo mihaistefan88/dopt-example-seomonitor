@@ -1,16 +1,41 @@
 <template>
   <div v-if="flow">
-    <button
-        v-if="modalBlockState.active"
-        @click="completeTransition"
-    >
-      {{ modalBlock.sid }}
-    </button>
+    <DoptModal v-for="i in 3" :key="i"
+               :active="modalBlock.state.active"
+               :id="i" :title="modalBlock.title"
+               @loaded="completeTransition"
+               @renderBlock="setRenderedBlock"
+               v-if="!activeRenderedBlockUid || renderedBlocks[modalBlock.title] === activeRenderedBlockUid"
+    ></DoptModal>
+
+    <table>
+      <thead>
+      <tr>
+        <td>#</td>
+        <td>Name</td>
+        <td>Example column</td>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>1</td>
+        <td>Barbie</td>
+        <td>7.5</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Oppenheimer</td>
+        <td>8.5</td>
+      </tr>
+      </tbody>
+    </table>
+
   </div>
 </template>
 
 <script>
 import Dopt from '@dopt/javascript';
+import DoptModal from './DoptModal.vue';
 
 export default {
   props: {
@@ -19,33 +44,68 @@ export default {
       required: true
     }
   },
+  components: {DoptModal},
   data() {
     return {
       flow: null,
       flowState: null,
       modalBlock: null,
-      modalBlockState: null
+      modalBlockState: null,
+      highlightBlock: null,
+      highlightBlockState: null,
+      renderedBlocks: {},
+      activeRenderedBlockUid: null,
     };
   },
   methods: {
+    setRenderedBlock(uid) {
+      console.log('uid', uid)
+      console.log('this.activeRenderedBlockUid', this.activeRenderedBlockUid)
+      if (!this.activeRenderedBlockUid) {
+        this.renderedBlocks = Object.assign(
+            {}, {
+              this.modalBlock.title: uid
+            }
+        );
+        this.activeRenderedBlockUid = uid;
+      }
+    },
     completeTransition() {
       this.modalBlock.transition('complete');
+      this.modalBlock.state.exited = true;
     }
   },
   created() {
     this.flow = this.dopt.flow('dev-example-flow');
+    this.flow.reset();
     this.flowState = this.flow.state;
 
-    this.flow.subscribe(({ state }) => {
+    this.flow.subscribe(({state}) => {
       this.flowState = state;
+      console.log('state', state)
     });
 
-    this.modalBlock = this.dopt.block('test-modal');
+    this.modalBlock = this.dopt.modal('dev-example-flow.brave-feet-boil');
     this.modalBlockState = this.modalBlock.state;
-
-    this.modalBlock.subscribe(({ state }) => {
+    this.modalBlock.subscribe(({state}) => {
       this.modalBlockState = state;
     });
+
+    // this.highlightBlock = this.dopt.block('dev-example-flow.chatty-owls-scream');
+    // this.highlightBlockState = this.highlightBlock.state;
+    // this.highlightBlock.subscribe(({ state }) => {
+    //   this.highlightBlockState = state;
+    // });
+
+
+    console.log('blockstate active', this.modalBlockState.active)
+    console.log('flowstate started', this.flowState.started)
   }
 };
 </script>
+
+<style>
+.highlighted {
+  background-color: #ffff00;
+}
+</style>
