@@ -2,10 +2,9 @@
   <div v-if="flow">
     <DoptModal v-for="i in 3" :key="i"
                :active="modalBlock.state.active"
-               :id="i" :title="modalBlock.title"
-               @loaded="completeTransition"
+               :id="i" :title="modalBlock.block.sid"
+               :rendered-blocks="renderedBlocks"
                @renderBlock="setRenderedBlock"
-               v-if="!activeRenderedBlockUid || renderedBlocks[modalBlock.title] === activeRenderedBlockUid"
     ></DoptModal>
 
     <table>
@@ -55,20 +54,12 @@ export default {
       highlightBlockState: null,
       renderedBlocks: {},
       activeRenderedBlockUid: null,
+      currentIteratingBlock: null,
     };
   },
   methods: {
-    setRenderedBlock(uid) {
-      console.log('uid', uid)
-      console.log('this.activeRenderedBlockUid', this.activeRenderedBlockUid)
-      if (!this.activeRenderedBlockUid) {
-        this.renderedBlocks = Object.assign(
-            {}, {
-              this.modalBlock.title: uid
-            }
-        );
-        this.activeRenderedBlockUid = uid;
-      }
+    setRenderedBlock(obj) {
+      this.renderedBlocks = {...obj}
     },
     completeTransition() {
       this.modalBlock.transition('complete');
@@ -82,7 +73,6 @@ export default {
 
     this.flow.subscribe(({state}) => {
       this.flowState = state;
-      console.log('state', state)
     });
 
     this.modalBlock = this.dopt.modal('dev-example-flow.brave-feet-boil');
